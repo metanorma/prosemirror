@@ -4,10 +4,13 @@ require_relative 'node'
 require_relative 'table_row'
 
 module Prosereflect
+  # TODO: support for table attributes
+  # Table class represents a ProseMirror table.
+  # It contains rows, each of which can contain cells.
   class Table < Node
-    def rows
-      content.select { |node| node.type == 'table_row' }
-    end
+    PM_TYPE = 'table'
+
+    attribute :rows, TableRow, collection: true
 
     def header_row
       rows.first
@@ -27,16 +30,9 @@ module Prosereflect
       data_row.cells[col_index]
     end
 
-    # Create a new table
-    def self.create(attrs = nil)
-      table = new({ 'type' => 'table', 'content' => [] })
-      table.instance_variable_set(:@attrs, attrs) if attrs
-      table
-    end
-
     # Add a header row to the table
     def add_header(header_cells)
-      row = TableRow.create
+      row = TableRow.new
       header_cells.each do |cell_content|
         row.add_cell(cell_content)
       end
@@ -46,7 +42,7 @@ module Prosereflect
 
     # Add a data row to the table
     def add_row(cell_contents = [])
-      row = TableRow.create
+      row = TableRow.new
       cell_contents.each do |cell_content|
         row.add_cell(cell_content)
       end

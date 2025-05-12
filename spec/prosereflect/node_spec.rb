@@ -1,15 +1,18 @@
 # frozen_string_literal: true
 
+require 'spec_helper'
+
 RSpec.describe Prosereflect::Node do
   describe 'initialization' do
     it 'initializes with empty data' do
       node = described_class.new
       expect(node.type).to be_nil
       expect(node.attrs).to be_nil
-      expect(node.content).to eq([])
+      expect(node.content).to be_nil
       expect(node.marks).to be_nil
     end
 
+    # TODO: Update to lutaml-model
     it 'initializes with provided data' do
       data = {
         'type' => 'test_node',
@@ -47,29 +50,29 @@ RSpec.describe Prosereflect::Node do
   describe '#to_h' do
     it 'creates a hash representation with basic properties' do
       node = described_class.new({ 'type' => 'test_node' })
-      hash = node.to_h
+      hash = node.to_hash
 
       expect(hash).to be_a(Hash)
       expect(hash['type']).to eq('test_node')
     end
 
     it 'includes attrs when present' do
-      node = described_class.new({
-                                   'type' => 'test_node',
-                                   'attrs' => { 'key' => 'value' }
-                                 })
+      node = described_class.new(
+        type: Prosereflect::Text.new(text: 'Hello'),
+        attrs: [Prosereflect::Attribute::Href.new('https://example.com')]
+      )
 
-      hash = node.to_h
-      expect(hash['attrs']).to eq({ 'key' => 'value' })
+      hash = node.to_hash
+      expect(hash['attrs']).to eq([{ 'href' => 'https://example.com' }])
     end
 
     it 'includes marks when present' do
-      node = described_class.new({
-                                   'type' => 'test_node',
-                                   'marks' => [{ 'type' => 'bold' }]
-                                 })
+      node = described_class.new(
+        type: Prosereflect::Text.new(text: 'Hello'),
+        marks: [Prosereflect::Attribute::Bold.new]
+      )
 
-      hash = node.to_h
+      hash = node.to_hash
       expect(hash['marks']).to eq([{ 'type' => 'bold' }])
     end
 
@@ -79,7 +82,7 @@ RSpec.describe Prosereflect::Node do
                                    'content' => [{ 'type' => 'text', 'text' => 'Hello' }]
                                  })
 
-      hash = node.to_h
+      hash = node.to_hash
       expect(hash['content']).to be_an(Array)
       expect(hash['content'][0]['type']).to eq('text')
     end
@@ -140,20 +143,20 @@ RSpec.describe Prosereflect::Node do
 
   describe '.create' do
     it 'creates a node with the specified type' do
-      node = described_class.create('test_node')
+      node = described_class.new('test_node')
       expect(node.type).to eq('test_node')
     end
 
     it 'creates a node with attributes' do
       attrs = { 'key' => 'value' }
-      node = described_class.create('test_node', attrs)
+      node = described_class.new('test_node', attrs)
 
       expect(node.type).to eq('test_node')
       expect(node.attrs).to eq(attrs)
     end
 
     it 'initializes with empty content' do
-      node = described_class.create('test_node')
+      node = described_class.new('test_node')
       expect(node.content).to eq([])
     end
   end
@@ -203,13 +206,13 @@ RSpec.describe Prosereflect::Node do
     end
 
     it 'finds direct children of a specific type' do
-      paragraphs = node.find_children('paragraph')
+      paragraphs = node.find_children(Prosereflect::Paragraph)
       expect(paragraphs.size).to eq(2)
       expect(paragraphs).to all(be_a(Prosereflect::Paragraph))
     end
 
     it 'returns empty array if no matching children are found' do
-      result = node.find_children('nonexistent')
+      result = node.find_children(String)
       expect(result).to eq([])
     end
   end
@@ -231,26 +234,6 @@ RSpec.describe Prosereflect::Node do
       node.add_child(para)
 
       expect(node.text_content).to eq("Hello\nWorld")
-    end
-  end
-
-  describe '#text_content_with_breaks' do
-    it 'returns empty string for node without content' do
-      node = described_class.new({ 'type' => 'empty' })
-      expect(node.text_content_with_breaks).to eq('')
-    end
-
-    it 'includes newlines for hard breaks' do
-      node = described_class.new({ 'type' => 'parent' })
-
-      para = Prosereflect::Paragraph.new({ 'type' => 'paragraph' })
-      para.add_child(Prosereflect::Text.new({ 'type' => 'text', 'text' => 'Hello' }))
-      para.add_child(Prosereflect::HardBreak.new({ 'type' => 'hard_break' }))
-      para.add_child(Prosereflect::Text.new({ 'type' => 'text', 'text' => 'World' }))
-
-      node.add_child(para)
-
-      expect(node.text_content_with_breaks).to eq("Hello\nWorld")
     end
   end
 end

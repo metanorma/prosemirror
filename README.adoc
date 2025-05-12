@@ -80,7 +80,7 @@ tables = document.tables
 paragraphs = document.paragraphs
 
 # Access the first table
-first_table = document.first_table
+first_table = document.find_first('table')
 
 # Access header row and data rows in a table
 header = first_table.header_row
@@ -119,7 +119,7 @@ tables = document.find_all('table')
 text_nodes = document.find_all('text')
 
 # Find child nodes of a specific type
-table_cells = table.find_children('table_cell')
+table_cells = table.find_children(TableCell)
 ----
 
 == Data model
