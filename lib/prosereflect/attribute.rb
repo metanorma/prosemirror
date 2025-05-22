@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'lutaml/model'
 
 module Prosereflect
@@ -8,3 +10,4 @@ end
 require_relative 'attribute/base'
 require_relative 'attribute/href'
 require_relative 'attribute/id'
+require_relative 'attribute/bold'

@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 require_relative 'node'
-require_relative 'table_cell'
 
 module Prosereflect
-  class TableRow < Node
-    PM_TYPE = 'table_row'
+  class Heading < Node
+    PM_TYPE = 'heading'
 
     attribute :type, :string, default: -> { send('const_get', 'PM_TYPE') }
 
@@ -13,9 +12,10 @@ module Prosereflect
       map 'type', to: :type, render_default: true
       map 'content', to: :content
       map 'attrs', to: :attrs
+      map 'marks', to: :marks
     end
 
-    def initialize(opts = {})
+    def initialize(params = {})
       super
       self.content ||= []
     end
@@ -24,21 +24,10 @@ module Prosereflect
       new(attrs: attrs)
     end
 
-    def cells
-      content
-    end
+    def text_content
+      return '' unless content
 
-    # Add a cell to the row
-    def add_cell(content_text = nil)
-      cell = TableCell.create
-
-      if content_text
-        paragraph = cell.add_paragraph
-        paragraph.add_text(content_text)
-      end
-
-      add_child(cell)
-      cell
+      content.map(&:text_content).join
     end
   end
 end
